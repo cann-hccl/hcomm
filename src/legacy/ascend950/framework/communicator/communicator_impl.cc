@@ -3404,9 +3404,9 @@ HcclResult CommunicatorImpl::LaunchDpuKernel(aclrtFuncHandle& funcHandle)
     aclrtLaunchKernelCfg cfg;
     aclrtLaunchKernelAttr kernelAttr;
     kernelAttr.id = ACL_RT_LAUNCH_KERNEL_ATTR_TIMEOUT;
-    kernelAttr.value.timeout = NOTIFY_DEFAULT_WAIT_TIME > std::numeric_limits<uint16_t>::max() ?
-                                   std::numeric_limits<uint16_t>::max() :
-                                   NOTIFY_DEFAULT_WAIT_TIME;
+    // DPU RPC 服务 kernel 常驻至通信域销毁，生命周期不确定，不能按固定时长判超时。
+    // runtime 约定 value.timeout=0 表示永不超时；不设置该属性则是默认超时，语义相反，故不可省略。
+    kernelAttr.value.timeout = 0;
     cfg.numAttrs = 1;
     cfg.attrs = &kernelAttr;
     constexpr u32 numBlocks = 1;
